@@ -1,0 +1,8 @@
+//
+// Created by pvienne on 11/12/15.
+//
+
+#ifndef CARREFOUR_COORDINATEUR_H
+#define CARREFOUR_COORDINATEUR_H
+
+#endif //CARREFOUR_COORDINATEUR_H
