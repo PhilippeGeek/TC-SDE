@@ -8,6 +8,7 @@
 #define VNORM 0
 
 typedef struct voiture {
+    int id;
     int origine;
     int destination;
     int type;
@@ -21,10 +22,12 @@ typedef struct elem_embouteillage{
 typedef elem_embouteillage* VOITURES;
 
 void afficher_voiture(voiture* v);
+int generate_type(voiture* v);
+char origin_to_char(int origin);
 
-#define key_generateur_trafic 42
-#define key_generateur_trafic_prioritaire 1337
-#define key_feux 2048
-
+#define key_generateur_trafic 50
+#define key_generateur_trafic_prioritaire 51
+#define key_feux 52
+#define key_coordinateur 53
 
 #endif

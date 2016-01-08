@@ -7,13 +7,19 @@
 #ifndef CARREFOUR_LIB_H
 #define CARREFOUR_LIB_H
 
+typedef struct car_message{
+    long type; // Must be 42
+    int id;
+} car_message;
+
 int msg_close(int msqid);
 int msg_open(int key);
 int msg_create(int key);
-int msg_send_voiture(int msqid, voiture v);
-voiture msg_recieve_voiture(int msqid);
-int msg_send_pid(int msqid);
-int msg_recieve_pid(int msqid);
+int msg_send_voiture(int msqid, voiture* v);
+int msg_recieve_voiture(int msqid, voiture* v);
+int msg_send_pid(int msqid, int id);
+int msg_recieve_pid(int msqid, int from_id);
 void logger(const char *tag, const char *message, ...);
+int rand_without(int from, int to, int not);
 
 #endif //CARREFOUR_LIB_H

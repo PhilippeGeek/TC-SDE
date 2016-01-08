@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <string.h>
 #include<stdarg.h>
+#include <stdbool.h>
 #include "lib.h"
 
 int msg_close(int msqid){
@@ -27,8 +28,9 @@ int msg_close(int msqid){
 int msg_open(int key){
     int msqid = msgget(key, 0666);
     if(msqid<0){
-        logger("lib.msg_open", "Unable to open a message box");
-        logger("lib.msg_open", strerror(errno));
+        logger("lib.msg_open", "Unable to open a message box, retry in 1 second");
+        sleep(1);
+        return msg_open(key);
     }
     return msqid;
 }
@@ -39,10 +41,42 @@ int msg_create(int key){
     }
     return msqid;
 }
-int msg_send_voiture(int msqid, voiture v);
-voiture msg_recieve_voiture(int msqid);
-int msg_send_pid(int msqid);
-int msg_recieve_pid(int msqid);
+
+int msg_send_voiture(int msqid, voiture* v) {
+    int code = v->type + (2 << v->origine) + (32 << v->destination);
+    struct car_message message = {512l + code, v->id};
+    return msgsnd(msqid, (void*) &message, sizeof(int)*3, 0);
+}
+int msg_recieve_voiture(int msqid, voiture* v){
+    struct car_message message = {0l,0};
+    int code = v->type + (2 << v->origine) + (32 << v->destination);
+    if(0==msgrcv(msqid, (void*)&message, sizeof(int)*3, 512l + code, IPC_NOWAIT)) {
+        v->id = message.id;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+int msg_send_pid(int msqid, int identity){
+    struct pid_message { long type; int pid; } message = {100l + identity, getpid()};
+    return msgsnd(msqid, (void*) &message, sizeof(int)*3, IPC_NOWAIT);
+}
+int msg_recieve_pid(int msqid, int from_identity) {
+    struct pid_message { long type; int pid; } message = {100l + from_identity, -1};
+    msgrcv(msqid, (void*) &message, sizeof(int)*3, message.type, 0);
+    return message.pid;
+}
+
+int rand_without(int from, int to, int not) {
+    if(not<=to&&not>=from&&to-from<=1){
+        perror("We can not create an infinite loop");
+    }
+    int value;
+    do {
+        value = (rand() % (to-from)) + from;
+    } while (value == not);
+    return value;
+}
 
 void logger(const char *tag, const char *message, ...) {
     va_list args;
