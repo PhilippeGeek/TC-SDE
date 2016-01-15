@@ -40,6 +40,10 @@ void quit_handle(int sig){
     kill(carrefour.pid_generateur_trafic, SIGQUIT);
     printf("OK\n");
 
+    printf("On dit au générateur de trafic prioritaire de se stopper ... ");
+    kill(carrefour.pid_generateur_trafic_prioritaire, SIGQUIT);
+    printf("OK\n");
+
     printf("On dit au feu de s'arrêter ... ");
     kill(carrefour.pid_feux, SIGQUIT);
     printf("OK\n");
@@ -67,6 +71,10 @@ int lire_feux(){
     r_buffer = (*feux);
     up(sem_feux);
     return r_buffer;
+}
+
+void urgence(int sig){
+    printf("Urgence !!!!");
 }
 
 int main(){
@@ -99,33 +107,52 @@ int main(){
 
     puts("\nReady to run\n\n");
 
+    signal(SIGUSR1, urgence);
+
     int voitures = 0;
 
     while(!stopped){
         usleep(temps_unitaire);
 
         // On vérifie la boite des véhicules prioritaires
-
-
-        // On vérifie la boite des véhicules normaux
-        int i = 0;
-        for(i=0; i<4; i++){
-            down(sem_feux); // On gère l'itération, donc on evite que les feux soient modifiés
-            if(*feux & (1<<i)){
+        {
+            int i = 0;
+            for (i = 0; i < 4; i++) {
                 voiture *v = NULL;
-                int j=0, v_count = 0;
+                int j = 0, v_count = 0;
                 do {
-                    v=msg_recieve_voiture(carrefour.msqid_generateur_trafic, VNORM, i);
-                    if(v!=NULL) {
+                    v = msg_recieve_voiture(carrefour.msqid_generateur_trafic_prioritaire, VPRIO, i);
+                    if (v != NULL) {
+                        printf("Reçu prioritaire !");
                         v_count++;
                         free(v);
                     }
                     j++;
-                } while (v!=NULL && j<40);
-                printf("%c: %d\n", origin_to_char(i), v_count);
-                voitures+=v_count;
+                } while (v != NULL && j < 40);
             }
-            up(sem_feux); // On relache les feux
+        }
+
+        // On vérifie la boite des véhicules normaux
+        {
+            int i = 0;
+            for (i = 0; i < 4; i++) {
+                down(sem_feux); // On gère l'itération, donc on evite que les feux soient modifiés
+                if (*feux & (1 << i)) {
+                    voiture *v = NULL;
+                    int j = 0, v_count = 0;
+                    do {
+                        v = msg_recieve_voiture(carrefour.msqid_generateur_trafic, VNORM, i);
+                        if (v != NULL) {
+                            v_count++;
+                            free(v);
+                        }
+                        j++;
+                    } while (v != NULL && j < 40);
+                    printf("%c: %d\n", origin_to_char(i), v_count);
+                    voitures += v_count;
+                }
+                up(sem_feux); // On relache les feux
+            }
         }
 
         printf("%d voitures\n", voitures);

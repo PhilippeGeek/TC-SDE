@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
-#include "voiture.h"
-#include "generateur_trafic.h"
-#include "lib.h"
+#include "headers/voiture.h"
+#include "headers/generateur_trafic.h"
+#include "headers/lib.h"
 
 bool stop;
 int msg_box = 0;
@@ -40,18 +40,19 @@ void stop_my_while(int sig){
 int main(){
     printf("Generateur de véhicules prioritaires démarré,\n en attente du coordinateur ...\n");
     msg_box = msg_open(key_generateur_trafic_prioritaire);
+    puts("Envoie du PID\n");
     msg_send_pid(msg_box, key_generateur_trafic_prioritaire);
+    puts("Reception du PID\n");
     int pid = msg_recieve_pid(msg_box, key_coordinateur);
     printf("Coordinateur: %d\n", pid);
 
     signal(SIGQUIT, stop_my_while);
 
     while(!stop){
-        usleep(500000);
-        printf("Sending to msg_box ... ");
-        if(msg_send_voiture(msg_box, generate_car())==-1) { // Rejected, it's full !
-            sleep(2);
-        } else {
+        usleep(temps_unitaire*20);
+        printf("Envoie la gendarmerie ... ");
+        if(msg_send_voiture(msg_box, generate_car())>=0) {
+            kill(pid, SIGUSR1);
             printf("Sended\n");
         }
     }
