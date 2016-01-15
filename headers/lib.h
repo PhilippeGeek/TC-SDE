@@ -7,10 +7,8 @@
 #ifndef CARREFOUR_LIB_H
 #define CARREFOUR_LIB_H
 
-typedef struct car_message{
-    long type; // Must be 42
-    int id;
-} car_message;
+typedef struct car_message{ long type; int id; } car_message;
+typedef struct pid_message { long type; int pid; } pid_message;
 
 int msg_close(int msqid);
 int msg_open(int key);

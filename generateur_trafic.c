@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/errno.h>
 #include "voiture.h"
 #include "generateur_trafic.h"
 #include "lib.h"
@@ -36,7 +38,7 @@ void stop_my_while(int sig){
 }
 
 int main(){
-
+    printf("Generateur de véhicules normaux démarré,\n en attente du coordinateur ...\n");
     msg_box = msg_open(key_generateur_trafic);
     msg_send_pid(msg_box, key_generateur_trafic);
     int pid = msg_recieve_pid(msg_box, key_coordinateur);
@@ -45,11 +47,17 @@ int main(){
     signal(SIGQUIT, stop_my_while);
 
     while(!stop){
-        usleep(50000);
+        usleep(500000);
         voiture* car = generate_car();
         afficher_voiture(car);
         printf("\n");
-        msg_send_voiture(msg_box, car);
+        printf("Sending to msg_box ... ");
+        if(msg_send_voiture(msg_box, car)==-1) {
+            putchar('\n');
+            logger("traffic_generator", "Unable to send the car, forget it.");
+        } else {
+            printf("Sended\n");
+        }
     }
 
     return 0;
