@@ -10,6 +10,7 @@
 typedef struct car_message{ long type; int id; } car_message;
 typedef struct pid_message { long type; int pid; } pid_message;
 
+void clear_console();
 int msg_close(int msqid);
 int msg_open(int key);
 int msg_create(int key);

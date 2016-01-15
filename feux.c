@@ -27,6 +27,9 @@ void quit(int sig){
     printf("On prend la main sur les feux ... ");
     down(sem_feux);
     printf("OK\n");
+    printf("On dit au coordinateur de s'arrêter ... ");
+    kill(coordinator_pid, SIGQUIT);
+    printf("OK\n");
     printf("On éteint les feux ... ");
     detach_shmem(feux);
     remove_shmem(shmem_feux);
@@ -64,6 +67,43 @@ void trap_urgence(int sig){
         default:
             logger("feux","Signal étrange reçu : %d", sig);
     }
+}
+
+void afficher_etat(){
+    int state = lire_feux();
+    clear_console();
+
+    printf("Nord  ");
+    if(state&0b1){
+        printf("GREEN");
+    } else {
+        printf("RED");
+    }
+    printf("\n");
+
+    printf("Sud   ");
+    if(state&0b100){
+        printf("GREEN");
+    } else {
+        printf("RED");
+    }
+    printf("\n");
+
+    printf("Est   ");
+    if(state&0b10){
+        printf("GREEN");
+    } else {
+        printf("RED");
+    }
+    printf("\n");
+
+    printf("Ouest ");
+    if(state&0b1000){
+        printf("GREEN");
+    } else {
+        printf("RED");
+    }
+    printf("\n");
 }
 
 int main(){
@@ -123,10 +163,8 @@ int main(){
                 default:
                     ecrire_etat_feux(1,0,1,0);
             }
-            logger("feux","Etat : %d", lire_feux());
-        } else {
-            logger("feux","En état d'urgence !");
         }
+        afficher_etat();
     }
 }
 #pragma clang diagnostic pop

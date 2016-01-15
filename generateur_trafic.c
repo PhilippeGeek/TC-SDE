@@ -10,9 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
-#include "voiture.h"
-#include "generateur_trafic.h"
-#include "lib.h"
+#include "headers/voiture.h"
+#include "headers/generateur_trafic.h"
+#include "headers/lib.h"
 
 bool stop;
 int msg_box = 0;
@@ -47,16 +47,10 @@ int main(){
     signal(SIGQUIT, stop_my_while);
 
     while(!stop){
-        usleep(500000);
+        usleep(temps_unitaire/2);
         voiture* car = generate_car();
-        afficher_voiture(car);
-        printf("\n");
-        printf("Sending to msg_box ... ");
         if(msg_send_voiture(msg_box, car)==-1) {
-            putchar('\n');
             logger("traffic_generator", "Unable to send the car, forget it.");
-        } else {
-            printf("Sended\n");
         }
     }
 

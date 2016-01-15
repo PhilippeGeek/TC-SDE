@@ -12,7 +12,11 @@
 #include <string.h>
 #include<stdarg.h>
 #include <stdbool.h>
-#include "lib.h"
+#include "headers/lib.h"
+
+void clear_console(){
+    printf("\e[1;1H\e[2J");
+}
 
 int msg_close(int msqid){
     if(msqid<=0) return -2;
@@ -48,11 +52,10 @@ int msg_send_voiture(int msqid, voiture* v) {
 }
 int msg_recieve_voiture(int msqid, voiture* v){
     struct car_message message = {0l,0};
-    if(0==msgrcv(msqid, (void*)&message, sizeof(int), 512l + generate_type(v), IPC_NOWAIT)) {
+    if(0<=msgrcv(msqid, (void*)&message, sizeof(int), 512l + generate_type(v), IPC_NOWAIT)) {
         v->id = message.id;
         return 1;
     } else {
-        logger("Nope","Nope");
         return 0;
     }
 }

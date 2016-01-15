@@ -35,10 +35,21 @@ void quit_handle(int sig);
 
 void quit_handle(int sig){
     printf("\n========================\n\nSIGNAL: %d\n\n", sig);
+
+    printf("On dit au générateur de trafic de se stopper ... ");
+    kill(carrefour.pid_generateur_trafic, SIGQUIT);
+    printf("OK\n");
+
+    printf("On dit au feu de s'arrêter ... ");
+    kill(carrefour.pid_feux, SIGQUIT);
+    printf("OK\n");
+
+    printf("On ferme les boites de messages ... ");
     msg_close(carrefour.msqid_generateur_trafic);
     msg_close(carrefour.msqid_feux);
     msg_close(carrefour.msqid_generateur_trafic_prioritaire);
-    logger("coordinateur.quit","Successfuly cleared message box\n");
+    printf("OK\n");
+
     stopped = 1;
     printf("Gracefully stopped ;-)\n");
     exit(0);
@@ -62,9 +73,9 @@ int main(){
     signal(SIGQUIT, quit_handle);
     signal(SIGINT, quit_handle);
 
-    puts(" == Welcome to Traffic Coordinator v0.1 == \n\n");
+    puts(" == Bienvenu sur le coordinateur de trafic - v0.1 == \n\n");
 
-    puts("Connecting to traffic light process ... ");
+    puts("Connexion aux feux de circulation ... ");
     check_open_and_share_pid(key_feux, &carrefour.msqid_feux, &carrefour.pid_feux);
     sem_feux = open_semaphore(key_feux);
     int shmem_id = 0;
@@ -78,32 +89,30 @@ int main(){
 
     puts("OK\n");
 
-    /*puts("Connecting to traffic generator process ... ");
+    puts("Connexion au générateur de trafic ... ");
     check_open_and_share_pid(key_generateur_trafic, &carrefour.msqid_generateur_trafic, &carrefour.pid_generateur_trafic);
     puts("OK\n");
 
-    puts("Connecting to priory traffic generator process ... ");
+    /*puts("Connecting to priory traffic generator process ... ");
     check_open_and_share_pid(key_generateur_trafic_prioritaire, &carrefour.msqid_generateur_trafic_prioritaire, &carrefour.pid_generateur_trafic_prioritaire);
     puts("OK\n");*/
 
     puts("\nReady to run\n\n");
 
+    int voitures = 0;
+
     while(!stopped){
         usleep(temps_unitaire);
-        int f = lire_feux();
-        printf("Voies au vert : ");
-        if(f & 0b1){
-            printf("nord, ");
+        int i = 0;
+        for (i=0; i<512; i++){
+            struct car_message message = {0l,0};
+            if(0<=msgrcv(carrefour.msqid_generateur_trafic, (void*)&message, sizeof(int), 512l + i, IPC_NOWAIT)) {
+                voitures++;
+            }
         }
-        if(f & 0b10){
-            printf("est, ");
-        }
-        if(f & 0b100){
-            printf("sud\n");
-        }
-        if(f & 0b1000){
-            printf("ouest\n");
-        }
+        clear_console();
+        printf("%d voitures\n", voitures);
+
     }
 
     quit_handle(SIGQUIT);
