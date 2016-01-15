@@ -2,17 +2,17 @@
 <module type="CPP_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/headers/feux.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/generateur_trafic_prioritaire.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/generateur_trafic.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/headers/generateur_trafic.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/headers/coordinateur.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lib.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/voiture.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/headers/generateur_trafic.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/headers/feux.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/headers/voiture.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/headers/coordinateur.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/headers/lib.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/coordinateur.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/feux.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/headers/voiture.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />

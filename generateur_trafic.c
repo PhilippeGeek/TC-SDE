@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
+#include <sys/msg.h>
 #include "headers/voiture.h"
 #include "headers/generateur_trafic.h"
 #include "headers/lib.h"
@@ -43,15 +44,19 @@ int main(){
     msg_send_pid(msg_box, key_generateur_trafic);
     int pid = msg_recieve_pid(msg_box, key_coordinateur);
     printf("Coordinateur: %d\n", pid);
-
+    struct msqid_ds data;
     signal(SIGQUIT, stop_my_while);
-
+    int perdu = 0;
     while(!stop){
         usleep(temps_unitaire/2);
+        msgctl(msg_box, IPC_STAT, &data);
         voiture* car = generate_car();
         if(msg_send_voiture(msg_box, car)==-1) {
-            logger("traffic_generator", "Unable to send the car, forget it.");
+            perdu++;
         }
+        clear_console();
+        printf("%ld voitures en attente de passage\n", data.msg_qnum);
+        printf("%d perdus\n", perdu);
     }
 
     return 0;

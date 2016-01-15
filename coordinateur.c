@@ -93,9 +93,9 @@ int main(){
     check_open_and_share_pid(key_generateur_trafic, &carrefour.msqid_generateur_trafic, &carrefour.pid_generateur_trafic);
     puts("OK\n");
 
-    /*puts("Connecting to priory traffic generator process ... ");
+    puts("Connecting to priory traffic generator process ... ");
     check_open_and_share_pid(key_generateur_trafic_prioritaire, &carrefour.msqid_generateur_trafic_prioritaire, &carrefour.pid_generateur_trafic_prioritaire);
-    puts("OK\n");*/
+    puts("OK\n");
 
     puts("\nReady to run\n\n");
 
@@ -103,14 +103,31 @@ int main(){
 
     while(!stopped){
         usleep(temps_unitaire);
+
+        // On vérifie la boite des véhicules prioritaires
+
+
+        // On vérifie la boite des véhicules normaux
         int i = 0;
-        for (i=0; i<512; i++){
-            struct car_message message = {0l,0};
-            if(0<=msgrcv(carrefour.msqid_generateur_trafic, (void*)&message, sizeof(int), 512l + i, IPC_NOWAIT)) {
-                voitures++;
+        for(i=0; i<4; i++){
+            down(sem_feux); // On gère l'itération, donc on evite que les feux soient modifiés
+            if(*feux & (1<<i)){
+                voiture *v = NULL;
+                int j=0, v_count = 0;
+                do {
+                    v=msg_recieve_voiture(carrefour.msqid_generateur_trafic, VNORM, i);
+                    if(v!=NULL) {
+                        v_count++;
+                        free(v);
+                    }
+                    j++;
+                } while (v!=NULL && j<40);
+                printf("%c: %d\n", origin_to_char(i), v_count);
+                voitures+=v_count;
             }
+            up(sem_feux); // On relache les feux
         }
-        clear_console();
+
         printf("%d voitures\n", voitures);
 
     }

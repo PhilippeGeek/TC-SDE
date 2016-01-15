@@ -46,5 +46,5 @@ int generate_type(voiture* v){
         perror("Type must be 0 (normal) or 1 (priority)");
 
     // Generate code
-    return v->type + (2 << v->origine) + (32 << v->destination);
+    return v->type + (2 << v->destination);
 }

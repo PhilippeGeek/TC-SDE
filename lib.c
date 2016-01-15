@@ -47,16 +47,21 @@ int msg_create(int key){
 }
 
 int msg_send_voiture(int msqid, voiture* v) {
-    struct car_message message = {512l + generate_type(v), v->id};
-    return msgsnd(msqid, (void*) &message, sizeof(int), IPC_NOWAIT);
+    struct car_message message = {512l + (v->type+(2<<v->origine)), v->destination};
+    int r = msgsnd(msqid, (void*) &message, sizeof(int), IPC_NOWAIT);
+    free(v);
+    return r;
 }
-int msg_recieve_voiture(int msqid, voiture* v){
+voiture* msg_recieve_voiture(int msqid, int type, int origin){
     struct car_message message = {0l,0};
-    if(0<=msgrcv(msqid, (void*)&message, sizeof(int), 512l + generate_type(v), IPC_NOWAIT)) {
-        v->id = message.id;
-        return 1;
+    if(0<=msgrcv(msqid, (void*)&message, sizeof(int), 512l + (type+(2<<origin)), IPC_NOWAIT)) {
+        voiture* v=malloc(sizeof(voiture));
+        v->type = type;
+        v->origine = origin;
+        v->destination = message.dest;
+        return v;
     } else {
-        return 0;
+        return NULL;
     }
 }
 int msg_send_pid(int msqid, int identity){

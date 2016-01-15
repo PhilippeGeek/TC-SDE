@@ -29,6 +29,7 @@ char origin_to_char(int origin);
 #define key_generateur_trafic_prioritaire 51
 #define key_feux 52
 #define key_coordinateur 53
-#define temps_unitaire 100000
+// Le temps unitaire doit être supérieur à 1000, sinon des concurences frapperont
+#define temps_unitaire 10000
 
 #endif
