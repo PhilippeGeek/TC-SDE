@@ -19,11 +19,9 @@ void clear_console(){
 }
 
 int msg_close(int msqid){
-    if(msqid<=0) return -2;
+    if(msqid<0) return -2;
     int r=msgctl(msqid, IPC_RMID, NULL);
     if(r<0){
-        logger("lib.msg_close", "Unable to close a message box");
-        logger("lib.msg_close", strerror(errno));
         return -1;
     } else {
         return 0;
@@ -32,7 +30,6 @@ int msg_close(int msqid){
 int msg_open(int key){
     int msqid = msgget(key, 0666|IPC_NOWAIT);
     if(msqid<0){
-        //logger("lib.msg_open", "Unable to open a message box, retry in 1 second");
         sleep(1);
         return msg_open(key);
     }
@@ -74,14 +71,25 @@ int msg_recieve_pid(int msqid, int from_identity) {
     return message.pid;
 }
 
-int rand_without(int from, int to, int not) {
-    if(not<=to&&not>=from&&to-from<=1){
+int wait_for_pid(int msqid, int identity){
+    pid_message message = {200l + identity, -1};
+    msgrcv(msqid, &message, sizeof(int), message.type, 0);
+    return message.pid;
+}
+
+int send_ready_to_pid(int msqid, int identity){
+    pid_message message = {200l + identity, 1};
+    return msgsnd(msqid, &message, sizeof(int), 0);
+}
+
+int rand_without(int from, int to, int is_not) {
+    if(is_not <= to && is_not >= from && to - from <= 1){
         perror("We can not create an infinite loop");
     }
     int value;
     do {
         value = (rand() % (to-from)) + from;
-    } while (value == not);
+    } while (value == is_not);
     return value;
 }
 

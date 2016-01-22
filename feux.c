@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
+#include <string.h>
 #include "lib/shmem.h"
 #include "headers/lib.h"
 #include "headers/feux.h"
@@ -34,6 +36,7 @@ void quit(int sig){
     detach_shmem(feux);
     remove_shmem(shmem_feux);
     remove_semaphore(sem_feux);
+    msg_close(coordinator_msg_box);
     printf("OK\n");
     printf("\nGracefully exit ;-)\n");
     exit(0);
@@ -126,10 +129,10 @@ int main(){
     }
     {   // Et le sémaphore ?
         sem_feux = create_semaphore(key_feux);
-        if(sem_feux<=0){
+        if(sem_feux<0){
             printf("Le sémaphore n'a pas été libéré correctement!\n");
             sem_feux = open_semaphore(key_feux);
-            if(sem_feux<=0){
+            if(sem_feux<0){
                 fprintf(stderr, "Impossible de créer les feux !\nOn stope le massacre !");
                 exit(3);
             }
@@ -150,6 +153,10 @@ int main(){
     // On configure la prise en charge des SIGUSR1 et SIGUSR2
     signal(SIGUSR1, trap_urgence);
     signal(SIGUSR2, trap_urgence);
+
+    printf("On attend que le coordinateur soit pret ...\n");
+    wait_for_pid(coordinator_msg_box, coordinator_pid);
+
 
     // On peux enfin s'amuser avec notre feux
     while(1){

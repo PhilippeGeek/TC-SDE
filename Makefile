@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Wall -Iheaders -Ilib -O3
+CFLAGS=-c -Iheaders -Ilib -O3
 LDFLAGS=
 
 headers = $(wildcard headers/*.h)

@@ -18,6 +18,7 @@
 bool stop;
 int msg_box = 0;
 int coordinateur = 0;
+int pid;
 
 void catch_alarm(int sig){
     printf("Test\n");
@@ -36,16 +37,22 @@ voiture* generate_car(){
 
 void stop_my_while(int sig){
     stop = 1;
+    kill(pid, SIGQUIT);
 }
 
 int main(){
     printf("Generateur de véhicules normaux démarré,\n en attente du coordinateur ...\n");
     msg_box = msg_open(key_generateur_trafic);
     msg_send_pid(msg_box, key_generateur_trafic);
-    int pid = msg_recieve_pid(msg_box, key_coordinateur);
+    pid = msg_recieve_pid(msg_box, key_coordinateur);
     printf("Coordinateur: %d\n", pid);
+
+    printf("On attend que le coordinateur soit pret ...\n");
+    wait_for_pid(msg_box, pid);
+
     struct msqid_ds data;
     signal(SIGQUIT, stop_my_while);
+    signal(SIGINT, stop_my_while);
     int perdu = 0;
     while(!stop){
         usleep(temps_unitaire/2);

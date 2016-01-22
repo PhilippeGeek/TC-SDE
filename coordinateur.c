@@ -13,19 +13,6 @@
 #include "headers/coordinateur.h"
 #include "headers/lib.h"
 
-voiture from_N_to_E = {0,0,1,0};
-voiture from_N_to_S = {0,0,2,0};
-voiture from_N_to_W = {0,0,3,0};
-voiture from_E_to_N = {0,1,0,0};
-voiture from_E_to_S = {0,1,2,0};
-voiture from_E_to_W = {0,1,3,0};
-voiture from_S_to_N = {0,2,0,0};
-voiture from_S_to_E = {0,2,1,0};
-voiture from_S_to_W = {0,2,3,0};
-voiture from_W_to_N = {0,3,0,0};
-voiture from_W_to_E = {0,3,1,0};
-voiture from_W_to_S = {0,3,2,0};
-
 Carrefour carrefour = {0,0,0,0,0,0};
 int stopped = 0;
 int* feux;
@@ -104,6 +91,10 @@ int main(){
     puts("Connecting to priory traffic generator process ... ");
     check_open_and_share_pid(key_generateur_trafic_prioritaire, &carrefour.msqid_generateur_trafic_prioritaire, &carrefour.pid_generateur_trafic_prioritaire);
     puts("OK\n");
+
+    send_ready_to_pid(carrefour.msqid_feux, getpid());
+    send_ready_to_pid(carrefour.msqid_generateur_trafic_prioritaire, getpid());
+    send_ready_to_pid(carrefour.msqid_generateur_trafic, getpid());
 
     puts("\nReady to run\n\n");
 

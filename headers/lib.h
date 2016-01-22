@@ -18,7 +18,9 @@ int msg_send_voiture(int msqid, voiture* v);
 voiture* msg_recieve_voiture(int msqid, int type, int origin);
 int msg_send_pid(int msqid, int id);
 int msg_recieve_pid(int msqid, int from_id);
+int send_ready_to_pid(int msqid, int identity);
+int wait_for_pid(int msqid, int identity);
+int rand_without(int from, int to, int is_not);
 void logger(const char *tag, const char *message, ...);
-int rand_without(int from, int to, int not);
 
 #endif //CARREFOUR_LIB_H

@@ -30,6 +30,6 @@ char origin_to_char(int origin);
 #define key_feux 52
 #define key_coordinateur 53
 // Le temps unitaire doit être supérieur à 1000, sinon des concurences frapperont
-#define temps_unitaire 50000
+#define temps_unitaire 1000000
 
 #endif
