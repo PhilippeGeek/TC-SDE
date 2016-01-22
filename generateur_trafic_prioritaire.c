@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/errno.h>
+#include <sys/msg.h>
 #include "headers/voiture.h"
 #include "headers/generateur_trafic.h"
 #include "headers/lib.h"
@@ -40,6 +41,7 @@ void stop_my_while(int sig){
 }
 
 int main(){
+    clear_console();
     printf("Generateur de véhicules prioritaires démarré,\n en attente du coordinateur ...\n");
     msg_box = msg_open(key_generateur_trafic_prioritaire);
     puts("Envoie du PID\n");
@@ -54,11 +56,13 @@ int main(){
     signal(SIGQUIT, stop_my_while);
     signal(SIGINT, stop_my_while);
 
+    clear_console();
     while(!stop){
-        usleep(temps_unitaire*((unsigned int) (rand()%20) + 8));
-        if(msg_send_voiture(msg_box, generate_car())>=0) {
+        usleep((temps_unitaire * (unsigned int)(rand() % 20 + 10)));
+        if(msg_send_voiture(msg_box, generate_car())>=0){
             kill(pid, SIGUSR1);
         }
+        printf("Voiture prioritaire envoyée.\n");
     }
 
     return 0;

@@ -21,6 +21,12 @@ typedef struct elem_embouteillage{
 
 typedef elem_embouteillage* VOITURES;
 
+
+typedef struct demande_feux{
+    long type; // Should be 99
+    int feux;
+} demande_feux;
+
 void afficher_voiture(voiture* v);
 int generate_type(voiture* v);
 char origin_to_char(int origin);
@@ -30,6 +36,6 @@ char origin_to_char(int origin);
 #define key_feux 52
 #define key_coordinateur 53
 // Le temps unitaire doit être supérieur à 1000, sinon des concurences frapperont
-#define temps_unitaire 1000000
+#define temps_unitaire 500000
 
 #endif

@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/msg.h>
 #include "lib/shmem.h"
 #include "headers/lib.h"
 #include "headers/feux.h"
@@ -57,56 +58,84 @@ void ecrire_etat_feux(int north, int east, int south, int west){
     up(sem_feux);
 }
 
-void trap_urgence(int sig){
-    switch(sig){
-        case SIGUSR1:
-            urgence = 1;
-            // TODO: Organiser la réception de la demande de passage
-            break;
-        case SIGUSR2:
-            urgence = 0;
-            ecrire_etat_feux(1,0,1,0);
-            break;
-        default:
-            logger("feux","Signal étrange reçu : %d", sig);
-    }
-}
-
 void afficher_etat(){
     int state = lire_feux();
     clear_console();
 
-    printf("Nord  ");
+    printf("== Gestion des feux (%d) == \n\n", getpid());
+
+    printf("    ║ N ║\n");
+    printf("    ║   ║\n");
+    printf("════╝");
     if(state&0b1){
-        printf("GREEN");
+        printf(" ▼ ");
     } else {
-        printf("RED");
+        printf("---");
     }
-    printf("\n");
-
-    printf("Sud   ");
-    if(state&0b100){
-        printf("GREEN");
-    } else {
-        printf("RED");
-    }
-    printf("\n");
-
-    printf("Est   ");
-    if(state&0b10){
-        printf("GREEN");
-    } else {
-        printf("RED");
-    }
-    printf("\n");
-
-    printf("Ouest ");
+    printf("╚════\n");
+    printf(" W  ");
     if(state&0b1000){
-        printf("GREEN");
+        printf("▶");
     } else {
-        printf("RED");
+        printf("┊");
     }
-    printf("\n");
+    printf("   ");
+    if(state&0b10){
+        printf("◀");
+    } else {
+        printf("┊");
+    }
+    printf("  E\n");
+    printf("════╗");
+    if(state&0b100){
+        printf(" ▲ ");
+    } else {
+        printf("---");
+    }
+    printf("╔════\n");
+    printf("    ║   ║\n");
+    printf("    ║ S ║  ");
+    if(urgence){
+        printf("URGENCE!\n");
+    } else {
+        printf("standard\n");
+    }
+}
+
+void trap_urgence(int sig){
+    switch(sig){
+        case SIGUSR1:
+            urgence = 1;
+            afficher_etat();
+            while(urgence){
+
+                // Réception d'une demande de changement de feux unique
+                demande_feux demande = {99l, -1};
+                msgrcv(coordinator_msg_box, (void*) &demande, sizeof(int), demande.type, 0);
+                if(demande.type != -1){
+                    down(sem_feux);
+                    (*feux) = 1<<(demande.feux);
+                    up(sem_feux);
+                    demande.type -= 1;
+                    msgsnd(coordinator_msg_box, &demande, sizeof(int), 0);
+
+                    // Affichage de l'état
+                    afficher_etat();
+                }
+
+                // Vérification des demandes toute les 500 micro-secondes
+                usleep(500);
+            }
+            break;
+        case SIGUSR2:
+            urgence = 0;
+            clear_console();
+            ecrire_etat_feux(1,0,1,0);
+            afficher_etat();
+            break;
+        default:
+            logger("feux","Signal étrange reçu : %d", sig);
+    }
 }
 
 int main(){
@@ -115,7 +144,7 @@ int main(){
     signal(SIGQUIT, quit);
     signal(SIGINT, quit);
 
-    printf("== Traffic Lights Management (%d) == \n\n", getpid());
+    printf("== Gestion des feux (%d) == \n\n", getpid());
 
     // Gestion de la création de la mémoire partagé
     shmem_feux = create_shmem(key_feux, sizeof(int));
@@ -160,7 +189,6 @@ int main(){
 
     // On peux enfin s'amuser avec notre feux
     while(1){
-        usleep(temps_unitaire*4); // Toutes les 4 instances
         if(urgence == (int) 0){
             switch (lire_feux()){
                 case 5:
@@ -172,6 +200,7 @@ int main(){
             }
         }
         afficher_etat();
+        usleep(temps_unitaire*4); // Toutes les 4 instances
     }
 }
 #pragma clang diagnostic pop

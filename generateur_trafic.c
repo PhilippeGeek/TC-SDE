@@ -53,17 +53,13 @@ int main(){
     struct msqid_ds data;
     signal(SIGQUIT, stop_my_while);
     signal(SIGINT, stop_my_while);
-    int perdu = 0;
+
     while(!stop){
-        usleep(temps_unitaire/2);
-        msgctl(msg_box, IPC_STAT, &data);
-        voiture* car = generate_car();
-        if(msg_send_voiture(msg_box, car)==-1) {
-            perdu++;
-        }
+        msg_send_voiture(msg_box, generate_car());
         clear_console();
+        msgctl(msg_box, IPC_STAT, &data);
         printf("%ld voitures en attente de passage\n", data.msg_qnum);
-        printf("%d perdus\n", perdu);
+        usleep((temps_unitaire / (unsigned int)(rand() % 4 + 1)));
     }
 
     return 0;
